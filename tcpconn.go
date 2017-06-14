@@ -206,11 +206,12 @@ func (c *TCPConn) Read(b []byte) (int, error) {
 		c.Close()
 		return hLength, ErrLessThanZeroBytesReadHeader
 	}
-
-	// Using the header, read the remaining body
-	bLength, err := c.lowLevelRead(b[:msgLength])
+	var bLength int
+	// Using the header, read the remaining bodys
+	bLength, err = c.lowLevelRead(b[:msgLength])
 	if err != nil {
 		c.Close()
 	}
+
 	return bLength, err
 }

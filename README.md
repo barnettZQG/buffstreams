@@ -51,13 +51,13 @@ How do I use it?
 Download the library
 
 ```go
-go get "github.com/StabbyCutyou/buffstreams"
+go get "github.com/barnettzqg/buffstreams"
 ```
 
 Import the library
 
 ```go
-import "github.com/StabbyCutyou/buffstreams"
+import "github.com/barnettzqg/buffstreams"
 ```
 
 For a quick example of a complete end to end client and server, check out the examples in the test/ directory, namely test/client/test_client.go and test/server/test_server.go. These two files are designed to work together to demonstrate an end to end integration of Buffstreams, in the simplest possible way.
@@ -70,12 +70,15 @@ One of the core objects in Buffstreams is the TCPListener. This struct allows yo
 To begin listening, first create a TCPListenerConfig object to define how the listener should behave. A sample TCPListenerConfig might look like this:
 
 ```go
-cfg := TCPListenerConfig {
-  EnableLogging: false, // true will have log messages printed to stdout/stderr, via log
-  MaxMessageSize: 4096,
-  Callback: func(byte[])error{return nil} // Any function type that adheres to this signature, you'll need to deserialize in here if need be
-  Address: FormatAddress("", strconv.Itoa(5031)) // Any address with the pattern ip:port. The FormatAddress helper is here for convenience. For listening, you normally don't want to provide an ip unless you have a reason.
-}
+cfg := buffstreams.TCPListenerConfig{
+		EnableLogging:  false,
+		MaxMessageSize: 4096,
+		Address:        buffstreams.FormatAddress("", strconv.Itoa(5031)),
+		Callback: func(me []byte) error {
+			logrus.Info(string(me))
+			return nil
+		},
+	}
 ```
 
 ```go
@@ -127,11 +130,10 @@ Writing messages
 To begin writing messages to a new connection, you'll need to dial a using TCPConnConfig
 
 ```go
-cfg := TCPConnConfig {
-  EnableLogging: false, // true will have log messages printed to stdout/stderr, via log
-  MaxMessageSize: 4096, // You want this to match the MaxMessageSize the server expects for messages on that socket
-  Address: FormatAddress("127.0.0.1", strconv.Itoa(5031)) // Any address with the pattern ip:port. The FormatAddress helper is here for convenience.
-}
+cfg := buffstreams.TCPConnConfig{
+		MaxMessageSize: 2048,
+		Address:        buffstreams.FormatAddress("127.0.0.1", strconv.Itoa(5031)),
+	}
 ```
 
 Once you have a configuration object, you can Dial out.
