@@ -1,6 +1,7 @@
 package buffstreams
 
 import (
+	"bytes"
 	"log"
 	"net"
 	"sync"
@@ -150,7 +151,7 @@ func (t *TCPListener) readLoop(conn *TCPConn) {
 	t.shutdownGroup.Add(1)
 	defer t.shutdownGroup.Done()
 	// dataBuffer will hold the message from each read
-	dataBuffer := make([]byte, conn.maxMessageSize)
+	dataBuffer := bytes.NewBuffer(nil)
 
 	// Start an asyncrhonous call that will wait on the shutdown channel, and then close
 	// the connection. This will let us respond to the shutdown but also not incur
@@ -179,11 +180,12 @@ func (t *TCPListener) readLoop(conn *TCPConn) {
 		}
 		// We take action on the actual message data - but only up to the amount of bytes read,
 		// since we re-use the cache
-		if err = t.callback(dataBuffer[:msgLen]); err != nil && t.enableLogging {
+		if err = t.callback(dataBuffer.Bytes()); err != nil && t.enableLogging {
 			log.Printf("Error in Callback: %s", err.Error())
 			// TODO if it's a protobuffs error, it means we likely had an issue and can't
 			// deserialize data? Should we kill the connection and have the client start over?
 			// At this point, there isn't a reliable recovery mechanic for the server
 		}
+		dataBuffer.Reset()
 	}
 }
